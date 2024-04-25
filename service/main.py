@@ -1,5 +1,7 @@
 import os
 import pandas as pd
+import json
+import re
 from PIL import Image
 from textractor import Textractor
 from textractor.data.constants import TextractFeatures, Direction, DirectionalFinderType
@@ -55,14 +57,15 @@ def extractDataFromPdf(file_source: str):
             merged.append(df.iloc[1:])
 
     mergedDf = pd.concat(merged) 
+    mergedDf.columns = ["date", "txn_details", "merchant_type", "amount"]
     Crs = mergedDf[mergedDf.iloc[:, 3].str.contains('Cr|Credit', case=False)]
-    print("CRS")
-    print(Crs.head())
+    Crs['amount'] = Crs['amount'].apply(lambda x: re.sub(r'[^\d.]', '', x))
+    credit_response = json.loads(Crs.to_json(orient='records'))
 
     Drs = mergedDf[mergedDf.iloc[:, 3].str.contains('Dr|Debit', case=False)]
-    print("DRS")
-    print(Drs.head())
+    Drs['amount'] = Drs['amount'].apply(lambda x: re.sub(r'[^\d.]', '', x))
+    debit_response = json.loads(Drs.to_json(orient='records'))
 
-    return {"STATEMENT" : statement_response}
+    return {"STATEMENT" : statement_response, "TRANSACTIONS" : {"CREDIT" : credit_response, "DEBIT" : debit_response}}
  
 
