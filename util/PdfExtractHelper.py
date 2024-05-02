@@ -4,7 +4,8 @@ import PyPDF2
 import boto3
 import hashlib
 
-def extractPdfFromEncodedData(base64_encoded_pdf, password):
+def extractPdfFromEncodedData(base64_encoded_pdf, password, message_id):
+    print("Decoding pdf from encoded data")
     decoded_pdf = base64.urlsafe_b64decode(base64_encoded_pdf)
 
     pdf_reader = PyPDF2.PdfReader(io.BytesIO(decoded_pdf))
@@ -33,7 +34,7 @@ def extractPdfFromEncodedData(base64_encoded_pdf, password):
     output_pdf.seek(0)
 
     bucket_name = "jar-artefacts-preprod"
-    s3_key = "email-preprod/attachement.pdf"
+    s3_key = "email-preprod/" + message_id + ".pdf"
 
     s3_client = boto3.client('s3')
 
